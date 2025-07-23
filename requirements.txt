@@ -5,4 +5,4 @@ transformers
 SpeechRecognition
 textblob
 openai
-autogen
+pyautogen
