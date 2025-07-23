@@ -1,3 +1,4 @@
+git+https://github.com/microsoft/autogen.git
 streamlit
 gtts
 torch
@@ -5,4 +6,3 @@ transformers
 SpeechRecognition
 textblob
 openai
-pyautogen
