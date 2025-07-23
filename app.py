@@ -54,9 +54,11 @@ def text_to_speech(text):
         tts.save(tmp.name)
         return tmp.name
 
+# unset SSL_CERT_FILE
+# unset SSL_CERT_DIR
 
 # ---------------- Load Model ---------------- #
-model_path = "ekman_emotion_model"  # make sure it's the relative path
+model_path = "omkarwazulkar/ekman_emotion_model"  # make sure it's the relative path
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSequenceClassification.from_pretrained(model_path)
 
