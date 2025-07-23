@@ -1,0 +1,8 @@
+streamlit
+gtts
+torch
+transformers
+SpeechRecognition
+textblob
+openai
+autogen
