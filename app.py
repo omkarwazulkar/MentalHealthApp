@@ -10,6 +10,9 @@ import speech_recognition as sr # type: ignore
 from autogen import AssistantAgent, UserProxyAgent # type: ignore
 from transformers import AutoTokenizer, AutoModelForSequenceClassification # type: ignore
 
+os.environ.pop("SSL_CERT_FILE", None)
+os.environ.pop("SSL_CERT_DIR", None)
+
 st.set_page_config(page_title="Multi-Agent Mental Health Chatbot", page_icon="🧠")
 
 # Title
