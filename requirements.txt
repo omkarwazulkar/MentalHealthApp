@@ -3,7 +3,8 @@ transformers
 torch
 speechrecognition
 textblob
-gtts
+TTS
+soundfile
 openai
 huggingface_hub
 autogen
