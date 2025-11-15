@@ -1,3 +1,4 @@
+pyarrow==14.0.2
 autogen
 streamlit
 gtts
@@ -6,5 +7,4 @@ transformers==4.36.2
 SpeechRecognition
 textblob
 openai
-pyarrow==14.0.2
 python-dotenv
