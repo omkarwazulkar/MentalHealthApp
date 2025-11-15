@@ -2,9 +2,10 @@ import torch # type: ignore
 import streamlit as st # type: ignore
 from transformers import AutoTokenizer, AutoModelForSequenceClassification # type: ignore
 
+hf_token = st.secrets["HF_TOKEN"]
 model_path = "j-hartmann/emotion-english-distilroberta-base" # make sure it's the relative path
-tokenizer = AutoTokenizer.from_pretrained(model_path, token=True)
-model = AutoModelForSequenceClassification.from_pretrained(model_path, token=True)
+tokenizer = AutoTokenizer.from_pretrained(model_path, token=hf_token)
+model = AutoModelForSequenceClassification.from_pretrained(model_path, token=hf_token)
 
 ekman_labels = ['Anger', 'Disgust', 'Fear', 'Joy', 'Neutral', 'Sadness', 'Surprise']
 ekman_to_sentiment = {
