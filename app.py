@@ -1,25 +1,28 @@
 import os
 import time
-import tempfile
-import torch # type: ignore
-from gtts import gTTS # type: ignore
+import warnings
 import streamlit as st # type: ignore
-from openai import OpenAI # type: ignore
-from textblob import TextBlob # type: ignore
-import speech_recognition as sr # type: ignore
-from autogen import AssistantAgent, UserProxyAgent # type: ignore
-from transformers import AutoTokenizer, AutoModelForSequenceClassification # type: ignore
+from agents.classify_specalist import classify_intent_with_gpt # type: ignore
+from utils.text_to_speech import text_to_speech # type: ignore
+from utils.record import record_voice # type: ignore
+from utils.crisis import check_crisis # type: ignore
+from models.emotion_model import detect_mood, ekman_to_sentiment # type: ignore
+from agents.mindfulness import get_mindfulness # type: ignore
+from agents.therapist import get_therapist # type: ignore
+from agents.motivator import get_motivator # type: ignore
+from agents.userproxy import get_proxy_agent # type: ignore
+from pages.tab_03_journal import tab_journal
+from pages.tab_04_mindfulness import tab_mindfulness
 
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ.pop("SSL_CERT_FILE", None)
 os.environ.pop("SSL_CERT_DIR", None)
 
 st.set_page_config(page_title="Multi-Agent Mental Health Chatbot", page_icon="🧠")
-
-# Title
-st.title("🧠 Multi-Agent Mental Health Chatbot")
-
-# API Key Input
-api_key = st.text_input("Enter your OpenAI API Key", type="password")
+st.title("🧠 Mental Health Chatbot")
+api_key = st.secrets["OPENAI_API_KEY"]
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -33,101 +36,6 @@ if "user_profile" not in st.session_state:
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-
-# ---------------- Voice Input ---------------- #
-def record_voice():
-    recognizer = sr.Recognizer()
-    mic = sr.Microphone()
-    with mic as source:
-        st.info("🎤 Listening... Speak now!")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
-    try:
-        text = recognizer.recognize_google(audio)
-        st.success(f"Voice recognized: {text}")
-        return text
-    except sr.UnknownValueError:
-        st.error("Sorry, I couldn't understand the audio.")
-        return None
-
-# ---------------- TTS Output ---------------- #
-def text_to_speech(text):
-    tts = gTTS(text)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
-        tts.save(tmp.name)
-        return tmp.name
-
-# unset SSL_CERT_FILE
-# unset SSL_CERT_DIR
-
-# ---------------- Load Model ---------------- #
-model_path = "omkarwazulkar/ekman_emotion_model"  # make sure it's the relative path
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSequenceClassification.from_pretrained(model_path)
-
-# Label maps
-ekman_labels = ['Anger', 'Disgust', 'Fear', 'Joy', 'Sadness', 'Surprise', 'Neutral']
-ekman_to_sentiment = {
-    'Anger': 'Negative',
-    'Disgust': 'Negative',
-    'Fear': 'Negative',
-    'Sadness': 'Negative',
-    'Joy': 'Positive',
-    'Surprise': 'Positive',
-    'Neutral': 'Neutral'
-}
-
-# Mood detection using fine-tuned model
-def detect_mood(user_input):
-    try:
-        inputs = tokenizer(user_input, return_tensors="pt", truncation=True, padding=True, max_length=128)
-        with torch.no_grad():
-            outputs = model(**inputs)
-
-        logits = outputs.logits
-        probs = torch.nn.functional.softmax(logits, dim=-1)
-        pred_id = torch.argmax(probs, dim=-1).item()
-        mood = ekman_labels[pred_id]
-        return mood
-    except Exception as e:
-        st.error(f"Error in mood detection: {str(e)}")
-        return "neutral"
-
-# ---------------- Crisis Detection ---------------- #
-def check_crisis(text):
-    crisis_keywords = ["suicide", "kill myself", "end my life", "can't go on", "self-harm"]
-    return any(word in text.lower() for word in crisis_keywords)
-
-# ---------------- Classify Intent ---------------- #
-def classify_intent_with_gpt(user_input, mood, api_key):
-    client = OpenAI(api_key=api_key)
-
-    routing_prompt = f"""
-You are an intelligent assistant that routes mental health user messages to the most appropriate virtual support agent.
-
-User input: "{user_input}"
-Detected mood: {mood}
-
-Based on this, decide which agent should respond:
-
-1. Therapist → If the user expresses emotional pain, depression, trauma, sadness, confusion, fear, or irrational thinking.
-2. Motivator → If the user expresses lack of energy, procrastination, self-doubt, laziness, or need encouragement.
-3. MindfulnessCoach → If the user expresses stress, anxiety, a racing mind, need for calmness, grounding, or mindfulness exercises.
-
-Respond ONLY with one word:
-Therapist, Motivator, or MindfulnessCoach.
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": routing_prompt}],
-            temperature=0
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        st.error(f"GPT Intent Classification failed: {str(e)}")
-        return "Therapist"  # fallback if GPT fails
 
 tab1, tab2, tab3, tab4 = st.tabs(["💬 Chat", "📊 Mood Tracker", "📔 Journal", "🧘 Mindfulness"])
 
@@ -161,14 +69,10 @@ with tab1:
             os.environ["OPENAI_API_KEY"] = api_key
             config_list = [{"model": "gpt-4.1-nano", "api_key": api_key}]
 
-            # Define agents
-            therapist = AssistantAgent(name="Therapist", llm_config={"config_list": config_list, "max_tokens":100},
-                                       system_message="You are a compassionate therapist. Use CBT and empathy.")
-            motivator = AssistantAgent(name="Motivator", llm_config={"config_list": config_list, "max_tokens":100},
-                                       system_message="You provide uplifting and encouraging messages.")
-            mindfulness = AssistantAgent(name="MindfulnessCoach", llm_config={"config_list": config_list, "max_tokens":100},
-                                         system_message="Suggest mindfulness and breathing exercises.")
-            user_proxy = UserProxyAgent(name="User", human_input_mode="NEVER", code_execution_config={"use_docker": False})
+            therapist = get_therapist(api_key)
+            motivator = get_motivator(api_key)
+            mindfulness = get_mindfulness(api_key)
+            user_proxy = get_proxy_agent(api_key)
 
             conversation = [
                 {"role": "system", "content": f"User mood is {mood}. Provide combined advice."},
@@ -209,11 +113,7 @@ with tab2:
         st.write("No mood data yet.")
 
 with tab3:
-    st.subheader("Your Journal")
-    journal_text = st.text_area("Write your thoughts for today:")
-    if st.button("Save Journal Entry"):
-        st.success("Journal saved!")
+    tab_journal()
 
 with tab4:
-    st.subheader("Mindfulness Exercise")
-    st.write("Try the 4-7-8 breathing technique:\n- Inhale for 4 seconds\n- Hold for 7 seconds\n- Exhale for 8 seconds")
+    tab_mindfulness()
