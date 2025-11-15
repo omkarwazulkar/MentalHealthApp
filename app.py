@@ -21,7 +21,7 @@ os.environ.pop("SSL_CERT_FILE", None)
 os.environ.pop("SSL_CERT_DIR", None)
 
 st.set_page_config(page_title="Multi-Agent Mental Health Chatbot", page_icon="🧠")
-st.title("🧠 Mental Health Chatbot")
+st.title("🧠 Mental Health Chat")
 api_key = st.secrets["OPENAI_API_KEY"]
 
 # Initialize chat history
