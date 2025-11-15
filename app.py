@@ -66,7 +66,7 @@ with tab1:
             st.error("⚠️ It sounds like you're in crisis. Please reach out to emergency services or call a hotline:\n\n**Suicide Hotline:** 988 (US) | **UK:** 0800 689 5652")
         
         if api_key:
-            st.secrets["OPENAI_API_KEY"] = api_key
+            os.environ["OPENAI_API_KEY"] = api_key
             config_list = [{"model": "gpt-4.1-nano", "api_key": api_key}]
 
             therapist = get_therapist(api_key)
