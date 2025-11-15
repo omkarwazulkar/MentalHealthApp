@@ -4,6 +4,7 @@ import soundfile as sf # type: ignore
 
 tts = TTS("tts_models/en/ljspeech/tacotron2-DDC")
 
+# TTS
 def text_to_speech(text):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         wav = tts.tts(text=text)
