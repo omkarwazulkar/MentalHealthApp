@@ -1,6 +1,6 @@
-import requests
+import requests # type: ignore
 import tempfile
-import streamlit as st
+import streamlit as st # type: ignore
 
 def hf_tts(text: str):
     hf_token = st.secrets["HF_TOKEN"]
