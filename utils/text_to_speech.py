@@ -5,7 +5,7 @@ import streamlit as st # type: ignore
 def hf_tts(text: str):
     hf_token = st.secrets["HF_TOKEN"]
 
-    API_URL = "https://api-inference.huggingface.co/models/facebook/fastspeech2-en-ljspeech"
+    API_URL = "https://router.huggingface.co/hf-inference/models/facebook/fastspeech2-en-ljspeech"
 
     headers = {"Authorization": f"Bearer {hf_token}"}
 
