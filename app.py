@@ -3,7 +3,7 @@ import time
 import warnings
 import streamlit as st # type: ignore
 from agents.classify_specalist import classify_intent_with_gpt # type: ignore
-from utils.text_to_speech import speak # type: ignore
+# from utils.text_to_speech import speak # type: ignore
 from utils.record import record_voice # type: ignore
 from utils.crisis import check_crisis # type: ignore
 from models.emotion_model import detect_mood, ekman_to_sentiment # type: ignore
