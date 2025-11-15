@@ -1,11 +1,10 @@
-streamlit==1.32.2
-transformers==4.40.1
+streamlit
+transformers
 torch
-textblob
 speechrecognition
+textblob
 gtts
 openai
 huggingface_hub
 autogen
-datasets==2.18.0
-pyarrow==0.0.0
+datasets
