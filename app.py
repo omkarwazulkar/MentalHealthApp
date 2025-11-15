@@ -100,8 +100,8 @@ with tab1:
                 st.markdown(final_response)
 
             # Audio response
-            audio_file = hf_tts(final_response)
-            st.audio(audio_file, format="audio/mp3")
+            # audio_file = hf_tts(final_response)
+            # st.audio(audio_file, format="audio/mp3")
         else:
             st.warning("Please enter your API key!")
 
