@@ -1,12 +1,21 @@
-from TTS.api import TTS # type: ignore
+import requests
 import tempfile
-import soundfile as sf # type: ignore
+import streamlit as st
 
-tts = TTS("tts_models/en/ljspeech/tacotron2-DDC")
+def hf_tts(text: str):
+    hf_token = st.secrets["HF_TOKEN"]
 
-# TTS
-def text_to_speech(text):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        wav = tts.tts(text=text)
-        sf.write(tmp.name, wav, 22050)
+    API_URL = "https://api-inference.huggingface.co/models/facebook/fastspeech2-en-ljspeech"
+
+    headers = {"Authorization": f"Bearer {hf_token}"}
+
+    payload = {"inputs": text}
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        raise RuntimeError(f"HuggingFace TTS failed: {response.text}")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+        tmp.write(response.content)
         return tmp.name
